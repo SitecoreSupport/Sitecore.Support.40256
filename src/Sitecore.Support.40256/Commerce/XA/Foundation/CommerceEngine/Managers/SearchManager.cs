@@ -33,12 +33,19 @@ namespace Sitecore.Support.Commerce.XA.Foundation.CommerceEngine.Managers
             var searchManager = CommerceTypeLoader.CreateInstance<ICommerceSearchManager>();
             var searchIndex = searchManager.GetIndex(catalogName);
 
+            #region start modified part of the code 
+            var startCategory = this.StorefrontContext.CurrentStorefront.GetStartNavigationCategory();
+            #endregion end of the modified part of code
 
             using (var context = searchIndex.CreateSearchContext())
             {
                 var csSearchResults = context.GetQueryable<CommerceSellableItemSearchResultItem>()
                     .Where(item => item.Name.Equals(keyword) || item["_displayname"].Equals(keyword) || item.Content.Contains(keyword))
                     .Where(item => item.CommerceSearchItemType == CommerceSearchItemType.SellableItem || item.CommerceSearchItemType == CommerceSearchItemType.Category)
+                #region start modified part of the code to use StartNavigationCategory
+                        //_path field contains all ancestor, therefore the code has been modified to use Paths property
+                        .Where(item => item.Paths.Contains(startCategory))
+                #endregion end of the modified part of code
 
                     // .Where(item => item.CatalogEntityId == catalogName)
                     .Where(item => item.Language == this.CurrentLanguageName)
